@@ -67,7 +67,7 @@ pub mod config_loader {
         .with_help_message("Press Enter to use the default max characters.")
         .prompt();
 
-        let config = Config {
+        Ok(Config {
             api_base_url: api_base_url.trim().to_string(),
             api_key: api_key.trim().to_string(),
             model_name: model_name.trim().to_string(),
@@ -75,6 +75,25 @@ pub mod config_loader {
             user_prompt: "The output of the git diff command:\n```\n{}\n```",
             max_chars,
             request_timeout: 30,
-        };
+        });
+    }
+
+    async fn write_config(file: &Path, config: &config) -> Result<()> {
+        create_dir_all(
+            file.parent()
+                .context("Failed to retrieve the config directory."),
+        )
+        .await
+        .context("Failed to create config directory.");
+
+        write(
+            file,
+            toml::to_string(&config).context("Failed to serialize the config."),
+        )
+        .await
+        .context("Failed to write config to file.");
+
+        println!("Successfully created config file: {:?}", file);
+        Ok(())
     }
 }
