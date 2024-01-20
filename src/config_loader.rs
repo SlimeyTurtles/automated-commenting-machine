@@ -6,13 +6,13 @@ use tokio::fs::{create_dir_all, read_to_string, write};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    api_base_url: String,
-    api_key: String,
-    model_name: String,
-    system_prompt: String,
-    user_prompt: String,
-    max_chars: u16,
-    request_timeout: u64,
+    pub api_base_url: String,
+    pub api_key: String,
+    pub model_name: String,
+    pub system_prompt: String,
+    pub user_prompt: String,
+    pub max_chars: u16,
+    pub request_timeout: u64,
 }
 
 pub async fn load_config(file: &Path) -> Result<Config> {
@@ -27,6 +27,8 @@ pub async fn load_config(file: &Path) -> Result<Config> {
     };
     Ok(config)
 }
+
+//
 
 async fn read_config(file: &Path) -> Result<Config> {
     let content = read_to_string(file)
