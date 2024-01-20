@@ -1,4 +1,5 @@
-use crate::config::Config;
+
+
 use anyhow::{ensure, Context, Result};
 use async_openai::types::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
@@ -130,7 +131,7 @@ pub async fn git_diff() -> Result<String> {
 /// or an error if there were issues constructing the request, sending it, or processing the response.
 pub async fn generate_commit_message(
     http_client: &Client,
-    config: &Config,
+    config: &crate::app_config::config::Config,
     diff: &str,
 ) -> Result<String> {
     let payload = CreateChatCompletionRequestArgs::default()
