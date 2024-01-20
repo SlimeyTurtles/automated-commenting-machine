@@ -1,6 +1,7 @@
 pub mod app_config;
 mod git_handler;
 mod handlers;
+mod img_handler;
 use clap::{Parser, Subcommand};
 
 use handlers::prs::execute_prs;
