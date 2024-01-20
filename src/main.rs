@@ -13,6 +13,8 @@ async fn main() -> Result<()> {
 
     let config = config::load_config(&config_file).await?;
 
+    git::git_checks().await?;
+
     let diffs = git::git_diff().await?;
 
     let http_client = Client::builder()
@@ -20,7 +22,6 @@ async fn main() -> Result<()> {
         .build()?;
 
     let commit_message = git::generate_commit_message(&http_client, &config, &diffs).await?;
-    println!("Diffs: {}", diffs);
     println!("Commit message: {}", commit_message,);
 
     Ok(())
