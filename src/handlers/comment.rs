@@ -10,32 +10,28 @@ fn is_directory(file_path: &str) -> bool {
 
 pub fn execute_cmt(dir: &str, req_file_type: &str) {
     if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                // Get the file name as a String
+        for entry in entries.flatten() {
 
-                if let Some(file_dir) = entry.path().to_str() {
-                    if is_directory(file_dir) {
-                        execute_cmt(file_dir, req_file_type)
+            if is_directory(entry.path().to_str().unwrap_or(".")) {
+                execute_cmt(entry.path().to_str().unwrap_or("."), req_file_type);
+                continue;
+            }
+
+            if let Some(file_name) = entry.file_name().to_str() {
+                println!("Found file: {}", file_name);
+
+                if let Some(extension) = entry.path().extension() {
+                    if let Some(extension_str) = extension.to_str() {
+                        println!("Text after last dot: {}", extension_str);
                     } else {
-                        if let Some(file_name) = entry.file_name().to_str() {
-                            println!("Found file: {}", file_name);
-                            if let Some(extension) = entry.path().extension() {
-                                if let Some(extension_str) = extension.to_str() {
-                                    println!("Text after last dot: {}", extension_str);
-                                } else {
-                                    eprintln!("Failed to convert extension to string.");
-                                }
-                            } else {
-                                println!("No extension found in the file name.");
-                            }
-
-                            // let contents = fs::read_to_string(entry.path())
-                            //     .expect("Should have been able to read the file");
-                        }
+                        eprintln!("Failed to convert extension to string.");
                     }
+                } else {
+                    println!("No extension found in the file name.");
                 }
             }
+
+        
         }
     }
 }
