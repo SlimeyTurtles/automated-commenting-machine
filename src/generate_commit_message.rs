@@ -14,6 +14,7 @@ use tokio::{
 use which::which;
 
 mod config_loader;
+mod git_diff;
 
 fn generate_commit_message() {
     // Creates payload for OpenAI API
@@ -26,7 +27,7 @@ fn generate_commit_message() {
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content(config_loader.Config.user_prompt.replace("{}", git_diffs))
+                .content(config_loader.Config.user_prompt.replace("{}", ENTER_GIT_DIFFS_HERE))
                 .build()?
                 .into(),
         ])
@@ -79,7 +80,7 @@ fn send_api_request() {
     let mut spinner = Spinner::new(spinners::Dots, "Generating commit message", None);
 
     // Generate commit message using a LLM
-    let commit_message = generate_commit_message(&http_client, &config, &git_diffs).await;
+    let commit_message = generate_commit_message().await;
 
     // Stop the spinner
     spinner.stop_with_message("");
@@ -88,5 +89,5 @@ fn send_api_request() {
 }
 
 fn main() {
-
+    send_api_request();
 }
