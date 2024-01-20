@@ -1,6 +1,21 @@
+use async_openai::types::{
+    ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
+    ChatCompletionResponseMessage, CreateChatCompletionRequestArgs,
+};
+use regex::Regex;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use spinoff::{spinners, Spinner};
+use std::{path::Path, time::Duration};
+use tokio::{
+    fs::{create_dir_all, read_to_string, write},
+    process::Command,
+};
+use which::which;
+
 mod config_loader;
 
-fn main() {
+fn generate_commit_message() {
     // Creates payload for OpenAI API
     let payload = CreateChatCompletionRequestArgs::default()
         .max_tokens(config_loader.Config.max_tokens)
@@ -51,6 +66,27 @@ fn main() {
         .as_str()
         .to_string();
 
-    Ok(commit_message)
+    Ok(commit_message);
+}
+
+fn send_api_request() {
+    // Create an HTTP client to interact with the Inference API
+    let http_client = Client::builder()
+        .timeout(Duration::from_secs(config.request_timeout))
+        .build()?;
+
+    // Start spinner
+    let mut spinner = Spinner::new(spinners::Dots, "Generating commit message", None);
+
+    // Generate commit message using a LLM
+    let commit_message = generate_commit_message(&http_client, &config, &git_diffs).await;
+
+    // Stop the spinner
+    spinner.stop_with_message("");
+
+    let commit_message = commit_message?;
+}
+
+fn main() {
 
 }
