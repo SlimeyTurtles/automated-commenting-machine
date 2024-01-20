@@ -71,6 +71,15 @@ pub async fn git_checks() -> Result<()> {
     Ok(())
 }
 
+pub async fn git_commit(commit_message: &str) -> Result<String> {
+    let result = run_git_command(&["commit", "-m", commit_message])
+        .await?
+        .trim()
+        .to_string();
+
+    Ok(result)
+}
+
 /// Asynchronously retrieves the staged Git differences.
 ///
 /// Executes the Git command to retrieve the staged differences, ensuring that there are staged changes
