@@ -22,8 +22,7 @@ async fn modify_file(dir: &str) {
             
             println!("File contents:\n{:?}", contents);
 
-            let output = img_driver(contents).await;
-            println!("{:?}", output);
+            img_driver(contents).await;
         }
         Err(e) => {
             // Handle the error if the file cannot be read
@@ -32,9 +31,9 @@ async fn modify_file(dir: &str) {
     }
 }
 
-pub fn execute_prs(dir: &str, req_file_type: &str) {
+pub async fn execute_prs(dir: &str, req_file_type: &str) {
     if !is_directory(dir) {
-        modify_file(dir);
+        modify_file(dir).await;
         return;
     }
     if let Ok(entries) = fs::read_dir(dir) {

@@ -31,7 +31,7 @@ async fn main() -> Result<()> {
         ("prs", Some(cmd)) => {
             let dir = cmd.value_of("dir").unwrap();
             let file_type = cmd.value_of("type").unwrap_or("all");
-            execute_prs(dir, file_type)
+            execute_prs(dir, file_type).await;
         }
         ("commit", Some(_)) => {
             let config_file = home_dir()
