@@ -4,6 +4,7 @@ use async_openai::types::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
     ChatCompletionResponseMessage, CreateChatCompletionRequestArgs,
 };
+use inquire::{required, Text};
 use regex::Regex;
 use reqwest::Client;
 use serde::Deserialize;
@@ -173,4 +174,19 @@ pub async fn generate_commit_message(
         .to_string();
 
     Ok(commit_message)
+}
+
+pub fn edit_commit_message(generated_commit_message: &str) -> Result<String> {
+    // Ask user to edit the generated commit message if needed
+    let edited_commit_message = Text::new("Your generated commit message:")
+        .with_initial_value(&generated_commit_message)
+        .with_validator(required!(
+            "Please provide a commit message to create a commit"
+        ))
+        .with_help_message(
+            "Press Enter to create a new commit with the current message or ESC to cancel",
+        )
+        .prompt()?;
+
+    Ok(edited_commit_message)
 }
