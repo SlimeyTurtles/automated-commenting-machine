@@ -6,15 +6,29 @@ use tokio::fs::{create_dir_all, read_to_string, write};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub api_base_url: String,
-    pub api_key: String,
-    pub model_name: String,
-    pub system_prompt: String,
-    pub user_prompt: String,
-    pub max_chars: u16,
-    pub request_timeout: u64,
+    pub api_base_url: String,  // The API base URL
+    pub api_key: String,       // Private API key
+    pub model_name: String,    // Name of LLM model to use
+    pub commit_prompt: String, // The prompt used when generating commit messages
+    pub diff_prompt: String, // Used for formatting the diff that is placed after the commit prompt
+    pub max_chars: u16,      // The max number of characters in the generated commit message
+    pub request_timeout: u64, // The timeout for the API request in seconds
 }
 
+/// Asynchronously loads the configuration from the specified file path.
+///
+/// If the configuration file exists, it reads the content using the `read_config` function.
+/// Otherwise, it creates a new configuration using the `create_config` function, writes it to the file,
+/// and prints a success message. The resulting `Config` is then returned wrapped in a `Result`.
+///
+/// # Arguments
+///
+/// * `file` - A reference to the path of the configuration file.
+///
+/// # Returns
+///
+/// Returns a `Result` containing the loaded or newly created `Config` on success,
+/// or an error if there were issues reading or creating the configuration.
 pub async fn load_config(file: &Path) -> Result<Config> {
     let config: Config = if file.exists() {
         read_config(file).await?
@@ -28,8 +42,19 @@ pub async fn load_config(file: &Path) -> Result<Config> {
     Ok(config)
 }
 
-//
-
+/// Asynchronously reads the configuration from the specified file path.
+///
+/// Reads the content of the configuration file at the given file path and parses it into
+/// a `Config` struct using the TOML format. Returns the resulting `Config` wrapped in a `Result`.
+///
+/// # Arguments
+///
+/// * `file` - A reference to the path of the configuration file.
+///
+/// # Returns
+///
+/// Returns a `Result` containing the parsed `Config` on success,
+/// or an error if there were issues reading or parsing the configuration.
 async fn read_config(file: &Path) -> Result<Config> {
     let content = read_to_string(file)
         .await
@@ -41,6 +66,16 @@ async fn read_config(file: &Path) -> Result<Config> {
     Ok(config)
 }
 
+/// Asynchronously creates a new configuration by prompting the user for required information.
+///
+/// Prompts the user for the API base URL, API key, model name, commit prompt, and the maximum number
+/// of characters for generated commit messages. Provides default values where applicable and validates
+/// user input. Returns the resulting configuration wrapped in a `Result`.
+///
+/// # Returns
+///
+/// Returns a `Result` containing the newly created `Config` on success,
+/// or an error if there were issues with user input or validation.
 async fn create_config() -> Result<Config> {
     let api_base_url = Text::new("Enter API base url: ")
         .with_default("https://api.together.xyz/v1/")
@@ -60,12 +95,10 @@ async fn create_config() -> Result<Config> {
         .prompt()?;
 
     let default_system_prompt = "You are required to write a meaningful commit message for the given code changes. The commit message must have the format: `type(scope): description`. The `type` must be one of the following: feat, fix, docs, style, refactor, perf, test, build, ci, chore, or revert. The `scope` indicates the area of the codebase that the changes affect. The `description` must be concise and written in a single sentence without a period at the end.";
-    let system_prompt = Text::new("Enter system prompt: ")
+    let commit_prompt = Text::new("Enter system prompt: ")
         .with_default(default_system_prompt)
         .with_validator(required!("System prompt is required."))
-        .with_help_message(
-            "Press Enter to use the default system prompt:\n\"{default_system_prompt}\"",
-        )
+        .with_help_message("Press Enter to use the default commit prompt.")
         .prompt()?;
 
     let max_chars = CustomType::<u16>::new(
@@ -79,13 +112,28 @@ async fn create_config() -> Result<Config> {
         api_base_url: api_base_url.trim().to_string(),
         api_key: api_key.trim().to_string(),
         model_name: model_name.trim().to_string(),
-        system_prompt: system_prompt.trim().to_string(),
-        user_prompt: "The output of the git diff command:\n```\n{}\n```".to_owned(),
+        commit_prompt: commit_prompt.trim().to_string(),
+        diff_prompt: "The output of the git diff command:\n```\n{}\n```".to_owned(),
         max_chars,
         request_timeout: 30,
     })
 }
 
+/// Asynchronously writes the configuration to the specified file path.
+///
+/// Creates the configuration directory if it does not exist, serializes the provided `Config`
+/// struct into a TOML-formatted string, and writes it to the specified file path. Prints a
+/// success message upon completion.
+///
+/// # Arguments
+///
+/// * `file` - A reference to the path of the configuration file.
+/// * `config` - A reference to the `Config` struct to be written.
+///
+/// # Returns
+///
+/// Returns a `Result` indicating success or an error if there were issues creating the directory,
+/// serializing the configuration, or writing to the file.
 async fn write_config(file: &Path, config: &Config) -> Result<()> {
     create_dir_all(
         file.parent()
