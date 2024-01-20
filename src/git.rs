@@ -35,7 +35,7 @@ async fn run_git_command(args: &[&str]) -> Result<String> {
     String::from_utf8(response.stdout).context("Failed to decode output of the Git command.")
 }
 
-async fn git_diff() -> Result<String> {
+pub async fn git_diff() -> Result<String> {
     let git_diffs = run_git_command(&[
         "--no-pager",
         "diff",
@@ -102,7 +102,7 @@ pub async fn generate_commit_message(
 
     // Post-process the generated commit message to keep only the first line and remove leading and trailing backticks
     let regex_matches = Regex::new(r"(?m)^\s*(?:`\s*(.+?)\s*`|(.+?))\s*$")?
-        .captures(&commit_message)
+        .captures(commit_message)
         .context("Failed to post-process the generated commit message")?;
 
     let commit_message = regex_matches
