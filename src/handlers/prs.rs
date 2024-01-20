@@ -6,6 +6,9 @@ use std::{time::Duration, fs};
 
 use crate::app_config::config::{self, Config};
 use crate::img_handler::img;
+use async_recursion::async_recursion;
+
+
 
 fn is_directory(file_path: &str) -> bool {
     if let Ok(metadata) = fs::metadata(file_path) {
@@ -31,6 +34,7 @@ async fn modify_file(dir: &str) {
     }
 }
 
+#[async_recursion]
 pub async fn execute_prs(dir: &str, req_file_type: &str) {
     if !is_directory(dir) {
         modify_file(dir).await;
@@ -38,7 +42,7 @@ pub async fn execute_prs(dir: &str, req_file_type: &str) {
     }
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
-            execute_prs(entry.path().to_str().unwrap_or("."), req_file_type);
+            execute_prs(entry.path().to_str().unwrap_or("."), req_file_type).await;
             continue;
         }
     }

@@ -51,7 +51,7 @@ pub async fn generate_commit_message(
                 .content(&config.commit_prompt)
                 .build()?
                 .into(),
-            ChatCompletionRequestUserMessageArgs::default()
+                ChatCompletionRequestUserMessageArgs::default()
                 .content(config.diff_prompt.replace("{}", diff))
                 .build()?
                 .into(),
