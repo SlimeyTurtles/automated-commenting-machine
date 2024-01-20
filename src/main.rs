@@ -35,10 +35,10 @@ async fn main() -> Result<()> {
     let args = Arguments::parse();
 
     match args.cmd {
-        SubCommand::Presents { path } => match path {
-            Some(path) => execute_prs(&path, ""),
+        SubCommand::Presents { path } => match &path {
+            Some(path) =>  execute_prs(&path, ""),
             None => execute_prs("./", ""),
-        },
+        }.await,
         SubCommand::Commit { } => {
             let config_file = home_dir()
                 .context("Failed to retrieve config directory.")?
@@ -57,8 +57,9 @@ async fn main() -> Result<()> {
             let commit_message =
                 git::generate_commit_message(&http_client, &config, &diffs).await?;
             let commit_message = git::edit_commit_message(commit_message.trim())?;
-            println!("{}", &git::git_commit(&commit_message).await?);
-        }
+            println!("{}", &git::git_commit(&commit_message).await?)
+
+        }  
     }
     Ok(())
 }
