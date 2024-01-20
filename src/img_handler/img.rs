@@ -27,7 +27,7 @@ pub async fn generate_image_url(
     println!("Generating image of: {}", img);
 
     let payload = CreateImageRequestArgs::default()
-        .model(ImageModel::Other(config.img_model_name.clone().into()))         // Other(config.img_model_name.clone().into()))
+        .model(ImageModel::Other(config.img_model_name.clone().into()))
         .prompt(img)
         .response_format(Url)
         .build()
