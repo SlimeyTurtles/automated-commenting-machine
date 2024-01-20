@@ -1,4 +1,4 @@
-mod config_loader;
+mod config;
 mod git;
 use anyhow::{Context, Result};
 use dirs::home_dir;
@@ -11,7 +11,7 @@ async fn main() -> Result<()> {
         .context("Failed to retrieve config directory.")?
         .join(".acm/config.toml");
 
-    let config = config_loader::load_config(&config_file).await?;
+    let config = config::load_config(&config_file).await?;
 
     let diffs = git::git_diff().await?;
 
