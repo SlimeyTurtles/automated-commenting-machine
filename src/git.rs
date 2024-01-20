@@ -135,7 +135,7 @@ pub async fn generate_commit_message(
 ) -> Result<String> {
     let payload = CreateChatCompletionRequestArgs::default()
         .max_tokens(config.max_chars)
-        .model(&config.model_name)
+        .model(&config.git_model_name)
         .messages([
             ChatCompletionRequestSystemMessageArgs::default()
                 .content(&config.commit_prompt)
@@ -149,7 +149,7 @@ pub async fn generate_commit_message(
         .build()
         .context("Failed to construct the request payload")?;
 
-    let response = http_client
+    let response: CommitMessageCandidates = http_client
         .post(format!("{}/chat/completions", &config.api_base_url))
         .bearer_auth(&config.api_key)
         .json(&payload)
