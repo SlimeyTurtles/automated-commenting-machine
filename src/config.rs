@@ -6,11 +6,12 @@ use tokio::fs::{create_dir_all, read_to_string, write};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub api_base_url: String,  // The API base URL
+    pub git_api_base_url: String,  // The API base URL
     pub api_key: String,       // Private API key
     pub git_model_name: String,    // Name of LLM model to use for commit messages
     pub commit_prompt: String, // The prompt used when generating commit messages
     pub diff_prompt: String, // Used for formatting the diff that is placed after the commit prompt
+    pub img_api_base_url: String,  // The API base URL
     pub img_model_name: String, // Name of LLM model to use for images
     pub slides_prompt: String, // The prompt used when generating slides
     pub img_prompt: String, // The prompt used when generating images
@@ -80,8 +81,8 @@ async fn read_config(file: &Path) -> Result<Config> {
 /// Returns a `Result` containing the newly created `Config` on success,
 /// or an error if there were issues with user input or validation.
 async fn create_config() -> Result<Config> {
-    let api_base_url = Text::new("Enter API base url: ")
-        .with_default("https://api.together.xyz/v1/completions")
+    let git_api_base_url = Text::new("Enter API base url: ")
+        .with_default("https://api.together.xyz/v1/")
         .prompt()?;
 
     let api_key = Password::new("Enter your API key: ")
@@ -102,6 +103,10 @@ async fn create_config() -> Result<Config> {
         .with_default(git_default_system_prompt)
         .with_validator(required!("System prompt is required."))
         .with_help_message("Press Enter to use the default commit prompt.")
+        .prompt()?;
+
+    let img_api_base_url = Text::new("Enter API base url: ")
+        .with_default("https://api.together.xyz/v1/completions")
         .prompt()?;
 
     let img_model_name = Text::new("Enter model name: ")
@@ -125,11 +130,12 @@ async fn create_config() -> Result<Config> {
     .prompt()?;
 
     Ok(Config {
-        api_base_url: api_base_url.trim().to_string(),
+        git_api_base_url: git_api_base_url.trim().to_string(),
         api_key: api_key.trim().to_string(),
         git_model_name: git_model_name.trim().to_string(),
         commit_prompt: commit_prompt.trim().to_string(),
         diff_prompt: "The output of the git diff command:\n```\n{}\n```".to_owned(),
+        img_api_base_url: img_api_base_url.trim().to_string(),
         img_model_name: img_model_name.trim().to_string(),
         slides_prompt: slides_prompt.trim().to_string(),
         img_prompt: "null".to_owned(),

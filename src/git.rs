@@ -149,8 +149,8 @@ pub async fn generate_commit_message(
         .build()
         .context("Failed to construct the request payload")?;
 
-    let response: CommitMessageCandidates = http_client
-        .post(format!("{}/chat/completions", &config.api_base_url))
+    let response = http_client
+        .post(format!("{}/chat/completions", &config.git_api_base_url))
         .bearer_auth(&config.api_key)
         .json(&payload)
         .send()

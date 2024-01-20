@@ -34,7 +34,7 @@ pub async fn generate_image_url(
         .context("Failed to construct the request payload")?;
 
     let response = http_client
-        .post(format!("{}", &config.api_base_url))
+        .post(format!("{}", &config.img_api_base_url))
         .bearer_auth(&config.api_key)
         .json(&payload)
         .send()
