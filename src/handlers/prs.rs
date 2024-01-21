@@ -5,11 +5,11 @@ use crate::app_config::config::{self, Config};
 use crate::img_handler::code_summarizer::generate_slide_summary;
 use dirs::home_dir;
 
-
 use reqwest::Client;
 use std::path::Path;
 use std::{fs, time::Duration};
 
+/// Reads the contents of a file specified by the given directory path.
 pub fn get_doc_text(dir: &str) -> Option<String> {
     match fs::read_to_string(dir) {
         Result::Ok(contents) => {
@@ -25,22 +25,29 @@ pub fn get_doc_text(dir: &str) -> Option<String> {
     }
 }
 
+/// Recursively goes through files and returns a `Vec<String>` with file contents.
 pub fn recur(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
+
     if !Path::new(dir).is_dir() {
+        println!("Getting {}", dir);
         match get_doc_text(dir) {
+            //return the array with the files content appended
             Some(text) => {
                 arr.push(text);
                 return arr;
             }
             None => {
+                //Push file
                 return arr;
             }
         }
     }
 
     if let Ok(entries) = fs::read_dir(dir) {
+        //Loop through all directories in this directory
         for entry in entries.flatten() {
-            recur(entry.path().to_str().unwrap_or("."), arr.clone());
+            // Update the arr to include all the files in the current directoy
+            arr = recur(entry.path().to_str().unwrap_or("."), arr.clone());
             continue;
         }
     }
@@ -56,7 +63,6 @@ pub async fn execute_prs(dir: &str) -> Result<(), Error> {
         .join(".acm/config.toml");
 
     let config: Config = config::load_config(&config_file).await?;
-   
 
     let http_client = Client::builder()
         .timeout(Duration::from_secs(config.request_timeout))
