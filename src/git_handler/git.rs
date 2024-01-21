@@ -1,5 +1,3 @@
-
-
 use anyhow::{ensure, Context, Result};
 use async_openai::types::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
@@ -189,7 +187,7 @@ pub async fn generate_commit_message(
 pub fn edit_commit_message(generated_commit_message: &str) -> Result<String> {
     // Ask user to edit the generated commit message if needed
     let edited_commit_message = Text::new("Your generated commit message:")
-        .with_initial_value(&generated_commit_message)
+        .with_initial_value(generated_commit_message)
         .with_validator(required!(
             "Please provide a commit message to create a commit"
         ))
