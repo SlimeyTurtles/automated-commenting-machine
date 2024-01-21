@@ -104,7 +104,7 @@ async fn create_config() -> Result<Config> {
     let google_slides_api_key = Text::new("Enter google slides key: ")
         .prompt()?;
 
-    let img_default_system_prompt = "You are required to write a create slideshows to describe code projects. These slideshows must describe the problem that the project solves and how it solves it. It must also be clear on how the project works for non-technical people. Write at least 3 sentences per slide and include a detailed description of what the slide would show. Output this purly in json with parameters for id, script, and image.";
+    let img_default_system_prompt = "Create a slideshows that describe what this code project is, and why it is helpful to the world. Make sure that this slideshow is kid friendly, and has at least 10 slides with 3 sentences each. Return your slideshow as a JSON object, with {slide number, slide description, and script} Make sure your JSON object has those three keys, and nothing else. Also make the slide descriptions concise and detailed about what should be appearing on the screen. ";
     let slides_prompt = Text::new("Enter system prompt: ")
         .with_default(img_default_system_prompt)
         .with_validator(required!("System prompt is required."))
