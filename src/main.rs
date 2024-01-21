@@ -28,7 +28,7 @@ enum SubCommand {
     // Writes commit message based on git diff
     Commit {},
     // Creates a README
-    RM { path: Option<String> },
+    CRead { path: Option<String> },
     // Writes JSDocs for TypeScript functions
     Comment { path: String },
 }
@@ -43,7 +43,7 @@ println!("Generating comments for {}", path);
             let result = comment_handler::comment::comment_file(&path).await?;
             println!("Done!\n{}", result);
         }
-        SubCommand::RM { path } => {
+        SubCommand::CRead { path } => {
             match &path {
                 Some(path) => execute_prs(path),
                 None => execute_prs("."),
