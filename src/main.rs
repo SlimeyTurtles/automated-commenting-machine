@@ -28,6 +28,10 @@ enum SubCommand {
     },
     /// Creates a Google Slide presentation demonstration the paths code 
     Presents { path: Option<String> },
+
+    Comment {
+        path: String
+    }
 }
 
 #[tokio::main]
@@ -35,6 +39,9 @@ async fn main() -> Result<()> {
     let args = Arguments::parse();
 
     match args.cmd {
+        SubCommand::Comment{ path } => {
+            
+        },
         SubCommand::Presents { path } => match &path {
             Some(path) =>  execute_prs(&path, ""),
             None => execute_prs(".", ""),
