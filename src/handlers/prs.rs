@@ -2,6 +2,7 @@ use anyhow::{Context, Error};
 
 use crate::app_config::config::{self, Config};
 
+use crate::git_handler::read_me_gen::generate_readme_summary;
 use crate::img_handler::code_summarizer::generate_slide_summary;
 use dirs::home_dir;
 
@@ -68,7 +69,7 @@ pub async fn execute_prs(dir: &str) -> Result<(), Error> {
         .timeout(Duration::from_secs(config.request_timeout))
         .build()?;
 
-    generate_slide_summary(&http_client, &config, file_text).await?;
+    generate_readme_summary(&http_client, &config, file_text).await?;
     Ok(())
 }
 
