@@ -11,7 +11,9 @@ pub struct Config {
     pub imgbb_api_key: String, // Private API key
 
     // GOOGLE SLIDES API
-    pub google_slides_api_key: String, // Private API key
+    pub client_id: String, // Private API key
+    pub client_secret: String, // Private API key
+    pub slides_prompt: String, // The prompt used when generating slides
 
     // GIT API
     pub git_api_base_url: String,  // The API base URL
@@ -23,7 +25,6 @@ pub struct Config {
     // IMAGE API
     pub img_api_base_url: String,  // The API base URL
     pub img_model_name: String, // Name of LLM model to use for images
-    pub slides_prompt: String, // The prompt used when generating slides
     pub img_prompt: String, // The prompt used when generating images
 
     // OTHER
@@ -101,7 +102,9 @@ async fn create_config() -> Result<Config> {
 
     // GOOGLE SLIDES API
 
-    let google_slides_api_key = Text::new("Enter google slides key: ")
+    let client_id = Text::new("Enter client_id: ")
+        .prompt()?;
+    let client_secret = Text::new("Enter client_secret: ")
         .prompt()?;
 
     let img_default_system_prompt = "Create a slideshows that describe what this code project is, and why it is helpful to the world. Make sure that this slideshow is kid friendly, and has at least 10 slides with 3 sentences each. Return your slideshow as a JSON object, with {slide number, slide description, and script} Make sure your JSON object has those three keys, and nothing else. Also make the slide descriptions concise and detailed about what should be appearing on the screen. ";
@@ -162,7 +165,9 @@ async fn create_config() -> Result<Config> {
         imgbb_api_key: imgbb_api_key.trim().to_string(),
 
         // GOOGLE SLIDES API
-        google_slides_api_key: google_slides_api_key.trim().to_string(),
+        client_id: client_id.trim().to_string(),
+        client_secret: client_secret.trim().to_string(),
+        slides_prompt: slides_prompt.trim().to_string(),
 
         // GIT API
         api_key: api_key.trim().to_string(),
@@ -174,8 +179,9 @@ async fn create_config() -> Result<Config> {
         // IMAGE API
         img_api_base_url: img_api_base_url.trim().to_string(),
         img_model_name: img_model_name.trim().to_string(),
-        slides_prompt: slides_prompt.trim().to_string(),
         img_prompt: "null".to_owned(),
+
+        // OTHER
         max_chars,
         request_timeout: 30,
     })
