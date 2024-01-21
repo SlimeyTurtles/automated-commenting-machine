@@ -1,5 +1,6 @@
+
 pub mod app_config;
-// mod comment_handler;
+mod comment_handler;
 mod git_handler;
 mod handlers;
 mod img_handler;
