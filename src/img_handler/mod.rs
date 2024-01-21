@@ -1,2 +1,2 @@
 pub mod img;
-pub mod code_summarizer;
+pub(crate) mod code_summarizer;

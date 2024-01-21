@@ -2,7 +2,7 @@ use anyhow::{Context, Error};
 
 use crate::app_config::config::{self, Config};
 use crate::git_handler::git;
-use crate::img_handler::code_summarizer::generate_commit_summary;
+use crate::img_handler::code_summarizer::generate_slide_summary;
 use crate::img_handler::img;
 use dirs::home_dir;
 
@@ -81,14 +81,14 @@ pub async fn execute_prs(dir: &str, req_file_type: &str) -> Result<(), Error> {
     .context("Failed to retrieve config directory.")?
     .join(".acm/config.toml");
 
-let config: Config = config::load_config(&config_file).await?;
-let diffs = git::git_diff().await?;
+    let config: Config = config::load_config(&config_file).await?;
+    let diffs = git::git_diff().await?;
 
-let http_client = Client::builder()
-    .timeout(Duration::from_secs(config.request_timeout))
-    .build()?;
+    let http_client = Client::builder()
+        .timeout(Duration::from_secs(config.request_timeout))
+        .build()?;
     
-    generate_commit_summary(&http_client, &config, &diffs, file_text).await?;
+    generate_slide_summary(&http_client, &config, file_text).await?;
     Ok(())
 }
 
