@@ -33,13 +33,9 @@ pub async fn generate_readme_summary(
     let mut chat_completion_request_system_message_args_list: Vec<ChatCompletionRequestMessage> =
         Vec::new();
 
-    chat_completion_request_system_message_args_list.push(
-        ChatCompletionRequestSystemMessageArgs::default()
-            .content("Take the following code and explain how what each function is doing simply. Include analogies and reference to materials that can help understand a concept. Output the format in a readme")
-            .build()?
-            .into(),
-    );
-
+      
+       
+        
     for file_text in file_text_list {
         chat_completion_request_system_message_args_list.push(
             ChatCompletionRequestUserMessageArgs::default()
@@ -49,10 +45,24 @@ pub async fn generate_readme_summary(
         )
     }
 
-    let max_chars: u16 = 240;
+    chat_completion_request_system_message_args_list.push(
+        ChatCompletionRequestSystemMessageArgs::default()
+            .content("turn this into a README and give me the output.")
+            .build()?
+            .into(),
+    );
+    
+   
+
+   
+   
+   
+
+
+    let max_chars: u16 = 2408;
     let payload = CreateChatCompletionRequestArgs::default()
         .max_tokens(max_chars)
-        .model("Nous Hermes 2 - Mixtral 8x7B-DPO")
+        .model("NousResearch/Nous-Hermes-2-Mixtral-8x7B-SFT")
         .messages(chat_completion_request_system_message_args_list)
         .build()
         .context("Failed to construct the request payload")?;

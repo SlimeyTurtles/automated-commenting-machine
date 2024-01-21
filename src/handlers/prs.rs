@@ -6,6 +6,7 @@ use crate::git_handler::read_me_gen::generate_readme_summary;
 use crate::img_handler::code_summarizer::generate_slide_summary;
 use dirs::home_dir;
 
+use std::io::Write;
 use reqwest::Client;
 use std::path::Path;
 use std::{fs, time::Duration};
@@ -56,6 +57,21 @@ pub fn recur(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
     return arr;
 }
 
+pub fn create_readme(dir: &str, content: &str) {
+    let file_path = format!("{}/{}", dir, "README.md");
+    let mut file = fs::File::create(file_path);
+    match file {
+        Ok(mut file) => {
+            file.write_all(content.as_bytes());
+        },
+        Err(_) => {
+            return;
+        },
+    }
+
+
+} 
+
 pub async fn execute_prs(dir: &str) -> Result<(), Error> {
     let file_text = recur(dir, Vec::new());
 
@@ -69,7 +85,8 @@ pub async fn execute_prs(dir: &str) -> Result<(), Error> {
         .timeout(Duration::from_secs(config.request_timeout))
         .build()?;
 
-    generate_readme_summary(&http_client, &config, file_text).await?;
+    let content = generate_readme_summary(&http_client, &config, file_text).await?;
+    create_readme(dir, &content);
     Ok(())
 }
 
