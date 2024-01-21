@@ -1,50 +1,38 @@
 use anyhow::{Context, Error};
 
-use dirs::home_dir;
-use reqwest::Client;
-use std::{time::Duration, fs};
-
 use crate::app_config::config::{self, Config};
-use crate::img_handler::img;
+use crate::img_handler::code_summarizer::generate_slide_summary;
+use dirs::home_dir;
 
-fn is_directory(file_path: &str) -> bool {
-    if let Ok(metadata) = fs::metadata(file_path) {
-        metadata.is_dir()
-    } else {
-        false
-    }
+use reqwest::Client;
+use std::path::Path;
+use std::{fs, time::Duration};
+use async_recursion::async_recursion;
+
+pub async fn execute_prs(dir: &str, file_type: &str) -> Result<(), Error> {
+    
+    let mut arr: Vec<String> = Vec::new();
+
+    recursive_search(Path::new(dir), &mut arr).await?;
+
+    Ok(())
 }
 
-async fn modify_file(dir: &str) {
-    match fs::read_to_string(dir) {
-        Result::Ok(contents) => {
-            // Successfully read the file contents
-            
-            println!("File contents:\n{:?}", contents);
-
-            img_driver(contents).await;
-        }
-        Err(e) => {
-            // Handle the error if the file cannot be read
-            eprintln!("Error reading file: {:?}", e);
-        }
-    }
-}
-
-pub async fn execute_prs(dir: &str, req_file_type: &str) {
-    if !is_directory(dir) {
-        modify_file(dir).await;
-        return;
-    }
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            execute_prs(entry.path().to_str().unwrap_or("."), req_file_type);
-            continue;
+#[async_recursion]
+async fn recursive_search(dir: &Path, arr: &mut Vec<String>) -> Result<(), Error> {
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                recursive_search(&path, arr).await?;
+            } else {
+                let file_contents = fs::read_to_string(&path)?;
+                arr.push(file_contents);
+            }
         }
     }
-}
 
-async fn img_driver(contents: String) -> Result<String, Error> {
     let config_file = home_dir()
         .context("Failed to retrieve config directory.")?
         .join(".acm/config.toml");
@@ -54,8 +42,8 @@ async fn img_driver(contents: String) -> Result<String, Error> {
     let http_client = Client::builder()
         .timeout(Duration::from_secs(config.request_timeout))
         .build()?;
+    
+    generate_slide_summary(&http_client, &config, arr.to_vec()).await?;
 
-    let img_url = img::generate_image_url(&http_client, &config, &contents).await?;
-    println!("{}", img_url);
-    Ok(img_url)
+    Ok(())
 }

@@ -14,7 +14,7 @@ tokio = { version = "1.35.1", features = ["full"] }
 inquire = "0.6.2"
 anyhow = "1.0"
 toml = "0.8.8"
-
+async-recursion = "1.0.5"
 dirs = "5.0.1"
 reqwest = "0.11.23"
 spinoff = "0.8.0"

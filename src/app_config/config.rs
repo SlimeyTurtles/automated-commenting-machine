@@ -6,15 +6,27 @@ use tokio::fs::{create_dir_all, read_to_string, write};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
+
+    // IMAGE UPLOAD API
+    pub imgbb_api_key: String, // Private API key
+
+    // GOOGLE SLIDES API
+    pub google_slides_api_key: String, // Private API key
+
+    // GIT API
     pub git_api_base_url: String,  // The API base URL
     pub api_key: String,       // Private API key
     pub git_model_name: String,    // Name of LLM model to use for commit messages
     pub commit_prompt: String, // The prompt used when generating commit messages
     pub diff_prompt: String, // Used for formatting the diff that is placed after the commit prompt
+    
+    // IMAGE API
     pub img_api_base_url: String,  // The API base URL
     pub img_model_name: String, // Name of LLM model to use for images
     pub slides_prompt: String, // The prompt used when generating slides
     pub img_prompt: String, // The prompt used when generating images
+
+    // OTHER
     pub max_chars: u16,      // The max number of characters in the generated commit message
     pub request_timeout: u64, // The timeout for the API request in seconds
 }
@@ -81,15 +93,35 @@ async fn read_config(file: &Path) -> Result<Config> {
 /// Returns a `Result` containing the newly created `Config` on success,
 /// or an error if there were issues with user input or validation.
 async fn create_config() -> Result<Config> {
-    let git_api_base_url = Text::new("Enter API base url: ")
-        .with_default("https://api.together.xyz/v1/")
+    
+    // IMAGE UPLOAD API
+
+    let imgbb_api_key = Text::new("Enter imgbb key: ")
         .prompt()?;
+
+    // GOOGLE SLIDES API
+
+    let google_slides_api_key = Text::new("Enter google slides key: ")
+        .prompt()?;
+
+    let img_default_system_prompt = "Create a slideshows that describe what this code project is, and why it is helpful to the world. Make sure that this slideshow is kid friendly, and has at least 10 slides with 3 sentences each. Return your slideshow as a JSON object, with {slide number, slide description, and script} Make sure your JSON object has those three keys, and nothing else. Also make the slide descriptions concise and detailed about what should be appearing on the screen. ";
+    let slides_prompt = Text::new("Enter system prompt: ")
+        .with_default(img_default_system_prompt)
+        .with_validator(required!("System prompt is required."))
+        .with_help_message("Press Enter to use the default commit prompt.")
+        .prompt()?;
+
+    // GIT API
 
     let api_key = Password::new("Enter your API key: ")
         .with_display_toggle_enabled()
         .with_display_mode(PasswordDisplayMode::Masked)
         .with_validator(required!("API key is required."))
         .without_confirmation()
+        .prompt()?;
+
+    let git_api_base_url = Text::new("Enter API base url: ")
+        .with_default("https://api.together.xyz/v1/")
         .prompt()?;
 
     let git_model_name = Text::new("Enter model name: ")
@@ -105,6 +137,8 @@ async fn create_config() -> Result<Config> {
         .with_help_message("Press Enter to use the default commit prompt.")
         .prompt()?;
 
+    // IMAGE API
+
     let img_api_base_url = Text::new("Enter API base url: ")
         .with_default("https://api.together.xyz/v1/completions")
         .prompt()?;
@@ -115,13 +149,6 @@ async fn create_config() -> Result<Config> {
         .with_help_message("Press Enter to use the default system prompt.")
         .prompt()?;
 
-    let img_default_system_prompt = "You are required to write a create slideshows to describe code projects. These slideshows must describe the problem that the project solves and how it solves it. It must also be clear on how the project works for non-technical people. Write at least 3 sentences per slide and include a detailed description of what the slide would show. Output this purly in json with parameters for id, script, and image.";
-    let slides_prompt = Text::new("Enter system prompt: ")
-        .with_default(img_default_system_prompt)
-        .with_validator(required!("System prompt is required."))
-        .with_help_message("Press Enter to use the default commit prompt.")
-        .prompt()?;
-
     let max_chars = CustomType::<u16>::new(
         "Enter the max number of characters for the generated commit messages: ",
     )
@@ -130,11 +157,21 @@ async fn create_config() -> Result<Config> {
     .prompt()?;
 
     Ok(Config {
-        git_api_base_url: git_api_base_url.trim().to_string(),
+
+        // IMAGE UPLOAD API
+        imgbb_api_key: imgbb_api_key.trim().to_string(),
+
+        // GOOGLE SLIDES API
+        google_slides_api_key: google_slides_api_key.trim().to_string(),
+
+        // GIT API
         api_key: api_key.trim().to_string(),
+        git_api_base_url: git_api_base_url.trim().to_string(),
         git_model_name: git_model_name.trim().to_string(),
         commit_prompt: commit_prompt.trim().to_string(),
         diff_prompt: "The output of the git diff command:\n```\n{}\n```".to_owned(),
+
+        // IMAGE API
         img_api_base_url: img_api_base_url.trim().to_string(),
         img_model_name: img_model_name.trim().to_string(),
         slides_prompt: slides_prompt.trim().to_string(),
