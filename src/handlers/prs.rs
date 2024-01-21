@@ -1,7 +1,7 @@
 use anyhow::{Context, Error};
 
 use crate::app_config::config::{self, Config};
-use crate::git_handler::git;
+
 use crate::img_handler::code_summarizer::generate_slide_summary;
 use dirs::home_dir;
 
@@ -25,7 +25,7 @@ pub fn get_doc_text(dir: &str) -> Option<String> {
     }
 }
 
-pub fn dir_iter(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
+pub fn recur(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
     if !Path::new(dir).is_dir() {
         match get_doc_text(dir) {
             Some(text) => {
@@ -40,7 +40,7 @@ pub fn dir_iter(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
 
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
-            dir_iter(entry.path().to_str().unwrap_or("."), arr.clone());
+            recur(entry.path().to_str().unwrap_or("."), arr.clone());
             continue;
         }
     }
@@ -48,15 +48,15 @@ pub fn dir_iter(dir: &str, mut arr: Vec<String>) -> Vec<std::string::String> {
     return arr;
 }
 
-pub async fn execute_prs(dir: &str, req_file_type: &str) -> Result<(), Error> {
-    let file_text = dir_iter(dir, Vec::new());
+pub async fn execute_prs(dir: &str) -> Result<(), Error> {
+    let file_text = recur(dir, Vec::new());
 
     let config_file = home_dir()
         .context("Failed to retrieve config directory.")?
         .join(".acm/config.toml");
 
     let config: Config = config::load_config(&config_file).await?;
-    let diffs = git::git_diff().await?;
+   
 
     let http_client = Client::builder()
         .timeout(Duration::from_secs(config.request_timeout))
