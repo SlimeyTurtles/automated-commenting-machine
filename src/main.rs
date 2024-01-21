@@ -1,19 +1,22 @@
 pub mod app_config;
+mod comment_handler;
 mod git_handler;
 mod handlers;
 mod img_handler;
-use clap::{Parser, Subcommand};
-
-use handlers::prs::execute_prs;
-
 use crate::{app_config::config, git_handler::git};
 use anyhow::{Context, Result};
+use clap::{Parser, Subcommand};
 use dirs::home_dir;
+use handlers::prs::execute_prs;
 use reqwest::Client;
 use std::time::Duration;
 
 #[derive(Parser, Debug)]
-#[clap(author = "SF Hacks @ CruzHacks ^-^", version="0.0.1", about="Hii this Devtool automates some boring parts of coding like git commits")]
+#[clap(
+    author = "SF Hacks @ CruzHacks ^-^",
+    version = "0.0.1",
+    about = "Hii this Devtool automates some boring parts of coding like git commits"
+)]
 /// A Very simple Package Hunter
 struct Arguments {
     #[clap(subcommand)]
@@ -22,16 +25,12 @@ struct Arguments {
 
 #[derive(Subcommand, Debug)]
 enum SubCommand {
-    /// Adds a commit to the current path
-    Commit {
-        
-    },
-    /// Creates a Google Slide presentation demonstration the paths code 
+    // Writes commit message based on git diff
+    Commit {},
+    // Creates a Google Slide presentation demonstration the paths code
     Presents { path: Option<String> },
-
-    Comment {
-        path: String
-    }
+    // Writes JSDocs for TypeScript functions
+    Comment { path: String },
 }
 
 #[tokio::main]
@@ -39,14 +38,19 @@ async fn main() -> Result<()> {
     let args = Arguments::parse();
 
     match args.cmd {
-        SubCommand::Comment{ path } => {
-            
-        },
-        SubCommand::Presents { path } => match &path {
-            Some(path) =>  execute_prs(&path, ""),
-            None => execute_prs(".", ""),
-        }.await?,
-        SubCommand::Commit { } => {
+        SubCommand::Comment { path } => {
+            println!("Generating comments for {}", path);
+            let result = comment_handler::comment::comment_file(&path).await?;
+            println!("Done!\n{}", result);
+        }
+        SubCommand::Presents { path } => {
+            match &path {
+                Some(path) => execute_prs(path, ""),
+                None => execute_prs(".", ""),
+            }
+            .await?
+        }
+        SubCommand::Commit {} => {
             let config_file = home_dir()
                 .context("Failed to retrieve config directory.")?
                 .join(".acm/config.toml");
@@ -65,8 +69,7 @@ async fn main() -> Result<()> {
                 git::generate_commit_message(&http_client, &config, &diffs).await?;
             let commit_message = git::edit_commit_message(commit_message.trim())?;
             println!("{}", &git::git_commit(&commit_message).await?)
-
-        }  
+        }
     }
     Ok(())
 }
