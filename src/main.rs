@@ -27,8 +27,8 @@ struct Arguments {
 enum SubCommand {
     // Writes commit message based on git diff
     Commit {},
-    // Creates a Google Slide presentation demonstration the paths code
-    Presents { path: Option<String> },
+    // Creates a README
+    CRead { path: Option<String> },
     // Writes JSDocs for TypeScript functions
     Comment { path: String },
 }
@@ -39,14 +39,14 @@ async fn main() -> Result<()> {
 
     match args.cmd {
         SubCommand::Comment { path } => {
-            println!("Generating comments for {}", path);
+println!("Generating comments for {}", path);
             let result = comment_handler::comment::comment_file(&path).await?;
             println!("Done!\n{}", result);
         }
-        SubCommand::Presents { path } => {
+        SubCommand::CRead { path } => {
             match &path {
-                Some(path) => execute_prs(path, ""),
-                None => execute_prs(".", ""),
+                Some(path) => execute_prs(path),
+                None => execute_prs("."),
             }
             .await?
         }
