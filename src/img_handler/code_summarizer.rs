@@ -56,7 +56,7 @@ pub async fn generate_slide_summary(
         .context("Failed to construct the request payload")?;
 
     let response = http_client
-        .post(format!("{}/chat/completions", &config.git_api_base_url))
+        .post(format!("{}", &config.git_api_base_url))
         .bearer_auth(&config.api_key)
         .json(&payload)
         .send()
