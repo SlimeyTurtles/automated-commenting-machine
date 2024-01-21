@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
     match args.cmd {
         SubCommand::Presents { path } => match &path {
             Some(path) =>  execute_prs(&path, ""),
-            None => execute_prs("./", ""),
+            None => execute_prs(".", ""),
         }.await?,
         SubCommand::Commit { } => {
             let config_file = home_dir()
