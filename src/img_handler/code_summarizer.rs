@@ -1,8 +1,12 @@
+use std::default;
+
 use anyhow::{ensure, Context, Result};
 use async_openai::types::{
-    ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,
-    ChatCompletionResponseMessage, CreateChatCompletionRequestArgs,
+    ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageArgs,
+    ChatCompletionRequestUserMessageArgs, ChatCompletionResponseMessage,
+    CreateChatCompletionRequestArgs,
 };
+
 use inquire::{required, Text};
 use regex::Regex;
 use reqwest::Client;
@@ -38,24 +42,28 @@ struct CommitMessageCandidates {
 ///
 /// Returns a `Result` containing the generated commit message as a string on success,
 /// or an error if there were issues constructing the request, sending it, or processing the response.
-pub async fn generate_commit_message(
+pub async fn generate_commit_summary(
     http_client: &Client,
     config: &crate::app_config::config::Config,
     diff: &str,
+    file_text_list: Vec<String>,
 ) -> Result<String> {
+    let mut chat_completion_request_system_message_args_list: Vec<ChatCompletionRequestMessage> =
+        Vec::new();
+
+    for file_text in file_text_list {
+        chat_completion_request_system_message_args_list.push(
+            ChatCompletionRequestSystemMessageArgs::default()
+                .content(file_text)
+                .build()?
+                .into(),
+        )
+    }
+
     let payload = CreateChatCompletionRequestArgs::default()
         .max_tokens(config.max_chars)
         .model(&config.git_model_name)
-        .messages([
-            ChatCompletionRequestSystemMessageArgs::default()
-                .content(&config.commit_prompt)
-                .build()?
-                .into(),
-            ChatCompletionRequestUserMessageArgs::default()
-                .content(config.diff_prompt.replace("{}", diff))
-                .build()?
-                .into(),
-        ])
+        .messages(chat_completion_request_system_message_args_list)
         .build()
         .context("Failed to construct the request payload")?;
 
